@@ -3,6 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signInWithPopup,
   signOut,
   updateProfile,
@@ -59,8 +60,22 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName: name });
+    
+    // Automatically send verification link upon registration
+    try {
+      await sendEmailVerification(result.user);
+    } catch (emailErr) {
+      console.warn('Could not send email verification:', emailErr);
+    }
+
     await syncWithBackend(result.user);
     return result.user;
+  };
+
+  const resendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+    }
   };
 
   const loginWithGoogle = async () => {
@@ -81,6 +96,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    resendVerificationEmail,
     loginWithGoogle,
     logout,
   };
