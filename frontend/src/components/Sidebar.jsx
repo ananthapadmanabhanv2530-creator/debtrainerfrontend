@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
-        <div className="sidebar-logo">⚡</div>
+        <img src="/debai.png" alt="DebateAI" style={{ width: 32, height: 32, objectFit: 'contain' }} />
         <span className="sidebar-title">DebateAI</span>
         <div style={{ marginLeft: 'auto' }}>
           <ThemeToggle size="sm" />
