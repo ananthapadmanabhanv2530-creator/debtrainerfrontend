@@ -4,6 +4,8 @@ import ParticleBackground from '../components/ParticleBackground';
 const AuthLayout = () => {
   return (
     <div className="auth-layout">
+      <ParticleBackground particleCount={80} />
+      
       {/* Left decorative panel */}
       <div className="auth-layout-left">
         <div className="auth-layout-left-content">
@@ -37,7 +39,6 @@ const AuthLayout = () => {
 
       {/* Right form panel */}
       <div className="auth-layout-right">
-        <ParticleBackground particleCount={30} />
         <Outlet />
       </div>
     </div>
@@ -45,3 +46,4 @@ const AuthLayout = () => {
 };
 
 export default AuthLayout;
+
