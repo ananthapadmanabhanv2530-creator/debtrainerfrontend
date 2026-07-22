@@ -70,7 +70,7 @@ const Register = () => {
           animate={{ rotate: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
         >
-          <img src="/card-logo.png" alt="DebateAI Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <img src="/debai.png" alt="DebateAI Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
         </motion.div>
         <h2>DebateAI</h2>
       </div>
