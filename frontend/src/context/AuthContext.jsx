@@ -40,6 +40,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const isPasswordUser = firebaseUser.providerData?.[0]?.providerId === 'password';
+        
+        // Block unverified email/password users from backend sync & state
+        if (isPasswordUser && !firebaseUser.emailVerified) {
+          setUser(null);
+          setDbUser(null);
+          setLoading(false);
+          return;
+        }
+
         setUser(firebaseUser);
         await syncWithBackend(firebaseUser);
       } else {
@@ -53,6 +63,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
+
+    // Enforce email verification for email/password auth
+    if (!result.user.emailVerified) {
+      await signOut(auth);
+      const error = new Error('Please verify your email address before logging in. Check your inbox for the link.');
+      error.code = 'auth/email-not-verified';
+      throw error;
+    }
+
     await syncWithBackend(result.user);
     return result.user;
   };
@@ -68,8 +87,12 @@ export const AuthProvider = ({ children }) => {
       console.warn('Could not send email verification:', emailErr);
     }
 
-    await syncWithBackend(result.user);
-    return result.user;
+    // Immediately sign out so user cannot access app without verifying email
+    await signOut(auth);
+    setUser(null);
+    setDbUser(null);
+
+    return { success: true, emailSent: true };
   };
 
   const resendVerificationEmail = async () => {
