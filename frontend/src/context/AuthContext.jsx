@@ -40,18 +40,24 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const isPasswordUser = firebaseUser.providerData?.[0]?.providerId === 'password';
-        
+        try {
+          // Refresh user data from Firebase to check if email was verified in another tab/device
+          await firebaseUser.reload();
+        } catch (_) {}
+
+        const currentUser = auth.currentUser || firebaseUser;
+        const isPasswordUser = currentUser.providerData?.[0]?.providerId === 'password';
+
         // Block unverified email/password users from backend sync & state
-        if (isPasswordUser && !firebaseUser.emailVerified) {
+        if (isPasswordUser && !currentUser.emailVerified) {
           setUser(null);
           setDbUser(null);
           setLoading(false);
           return;
         }
 
-        setUser(firebaseUser);
-        await syncWithBackend(firebaseUser);
+        setUser(currentUser);
+        await syncWithBackend(currentUser);
       } else {
         setUser(null);
         setDbUser(null);
@@ -64,16 +70,24 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
 
+    // Force reload to fetch the latest emailVerified status from Firebase servers
+    try {
+      await result.user.reload();
+    } catch (_) {}
+
+    const currentUser = auth.currentUser || result.user;
+
     // Enforce email verification for email/password auth
-    if (!result.user.emailVerified) {
+    if (!currentUser.emailVerified) {
       await signOut(auth);
       const error = new Error('Please verify your email address before logging in. Check your inbox for the link.');
       error.code = 'auth/email-not-verified';
       throw error;
     }
 
-    await syncWithBackend(result.user);
-    return result.user;
+    await syncWithBackend(currentUser);
+    setUser(currentUser);
+    return currentUser;
   };
 
   const register = async (name, email, password) => {
