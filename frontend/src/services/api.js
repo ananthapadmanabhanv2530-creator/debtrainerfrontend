@@ -27,15 +27,9 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Only log unauthorized warnings; avoid forcing hard page reloads
     if (error.response?.status === 401) {
-      console.warn('Unauthorized request — signing out');
-      // Token is invalid even after refresh — force sign out
-      try {
-        await auth.signOut();
-      } catch (_) {
-        // ignore sign-out errors
-      }
-      window.location.href = '/login';
+      console.warn('Unauthorized backend request:', error.config?.url);
     }
     return Promise.reject(error);
   }
