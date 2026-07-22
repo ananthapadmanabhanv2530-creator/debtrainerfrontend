@@ -183,6 +183,26 @@ export const AuthProvider = ({ children }) => {
     return { success: true, emailSent: true };
   };
 
+  const updateUserProfile = async (newName) => {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: newName });
+      
+      try {
+        const token = await auth.currentUser.getIdToken(true);
+        const response = await api.post('/auth/login', {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.data?.user) {
+          setDbUser(response.data.user);
+        }
+      } catch (_) {
+        if (dbUser) setDbUser({ ...dbUser, name: newName });
+      }
+
+      setUser({ ...auth.currentUser, displayName: newName });
+    }
+  };
+
   const resendVerificationEmail = async () => {
     if (auth.currentUser) {
       await sendEmailVerification(auth.currentUser);
@@ -207,6 +227,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    updateUserProfile,
     resendVerificationEmail,
     loginWithGoogle,
     logout,
