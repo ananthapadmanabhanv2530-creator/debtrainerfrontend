@@ -11,6 +11,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -32,7 +34,7 @@ const Register = () => {
     setLoading(true);
     try {
       await register(name, email, password);
-      navigate('/dashboard');
+      setSuccess(`Account created! We've sent a verification link to ${email}. Please check your inbox and verify your email before logging in.`);
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -42,6 +44,7 @@ const Register = () => {
 
   const handleGoogle = async () => {
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
       await loginWithGoogle();
@@ -82,6 +85,30 @@ const Register = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           {error}
+        </motion.div>
+      )}
+
+      {success && (
+        <motion.div
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            background: 'rgba(34, 197, 94, 0.15)',
+            border: '1px solid rgba(34, 197, 94, 0.4)',
+            color: '#4ade80',
+            fontSize: '0.9rem',
+            marginBottom: '20px',
+            lineHeight: 1.5,
+          }}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {success}
+          <div style={{ marginTop: '10px' }}>
+            <Link to="/login" style={{ color: '#ffffff', fontWeight: 600, textDecoration: 'underline' }}>
+              Proceed to Sign In →
+            </Link>
+          </div>
         </motion.div>
       )}
 
