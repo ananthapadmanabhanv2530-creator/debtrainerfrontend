@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import ParticleBackground from '../components/ParticleBackground';
 import { useState } from 'react';
 
 const MainLayout = () => {
@@ -7,6 +8,9 @@ const MainLayout = () => {
 
   return (
     <div className="app-layout">
+      {/* Full-screen animated interactive particles */}
+      <ParticleBackground particleCount={80} />
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
