@@ -7,11 +7,27 @@ import { User, Shield, Trash2, Palette } from 'lucide-react';
 import GradualBlur from '../../components/reactbits/GradualBlur';
 
 const Settings = () => {
-  const { user, dbUser, logout } = useAuth();
+  const { user, dbUser, updateUserProfile, logout } = useAuth();
   const { theme } = useTheme();
   const [name, setName] = useState(dbUser?.name || user?.displayName || '');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
 
   const displayEmail = dbUser?.email || user?.email || '';
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage('');
+    try {
+      await updateUserProfile(name);
+      setMessage('Profile updated successfully!');
+    } catch (err) {
+      setMessage('Failed to update profile.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -53,6 +69,21 @@ const Settings = () => {
           <User size={18} /> Profile
         </h3>
 
+        {message && (
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: message.includes('success') ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: message.includes('success') ? '#4ade80' : '#f87171',
+              fontSize: '0.88rem',
+              marginBottom: '16px',
+            }}
+          >
+            {message}
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
           <motion.div
             className="user-avatar"
@@ -63,7 +94,7 @@ const Settings = () => {
             {user?.photoURL ? (
               <img src={user.photoURL} alt="Profile" />
             ) : (
-              name
+              (name || 'U')
                 .split(' ')
                 .map((n) => n[0])
                 .join('')
@@ -72,12 +103,12 @@ const Settings = () => {
             )}
           </motion.div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>{name}</div>
+            <div style={{ fontSize: 18, fontWeight: 600 }}>{name || 'User'}</div>
             <div style={{ fontSize: 14, color: 'var(--fg-secondary)' }}>{displayEmail}</div>
           </div>
         </div>
 
-        <div className="auth-form" style={{ maxWidth: 400 }}>
+        <form className="auth-form" style={{ maxWidth: 400 }} onSubmit={handleSaveProfile}>
           <div className="input-group">
             <label>Display Name</label>
             <input
@@ -85,6 +116,7 @@ const Settings = () => {
               className="input"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              required
             />
           </div>
 
@@ -98,7 +130,18 @@ const Settings = () => {
               style={{ opacity: 0.6 }}
             />
           </div>
-        </div>
+
+          <motion.button
+            type="submit"
+            className="btn btn-primary btn-md"
+            disabled={saving}
+            style={{ marginTop: 12 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </motion.button>
+        </form>
       </motion.div>
 
       {/* Account Section */}
@@ -127,13 +170,16 @@ const Settings = () => {
           <div>
             <div style={{ fontWeight: 500 }}>Account Created</div>
             <div style={{ fontSize: 13, color: 'var(--fg-tertiary)', marginTop: 2 }}>
-              {dbUser?.createdAt
-                ? new Date(dbUser.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })
-                : '—'}
+              {(() => {
+                const dateVal = dbUser?.createdAt || dbUser?.created_at || user?.metadata?.creationTime;
+                return dateVal
+                  ? new Date(dateVal).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : '—';
+              })()}
             </div>
           </div>
         </div>
