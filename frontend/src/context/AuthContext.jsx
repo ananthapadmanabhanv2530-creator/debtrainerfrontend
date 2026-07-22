@@ -19,6 +19,55 @@ export const useAuth = () => {
   return context;
 };
 
+// Rate limiting settings per email address
+const MAX_FAILED_ATTEMPTS = 3;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+const getAttemptsKey = (email) => `login_attempts_${email.trim().toLowerCase()}`;
+
+const checkRateLimit = (email) => {
+  const key = getAttemptsKey(email);
+  const data = JSON.parse(localStorage.getItem(key) || '{}');
+
+  if (data.lockoutUntil) {
+    if (Date.now() < data.lockoutUntil) {
+      const remainingMs = data.lockoutUntil - Date.now();
+      const minutes = Math.ceil(remainingMs / 60000);
+      const error = new Error(`Account login temporarily disabled for ${email} due to 3 failed password attempts. Please try again in ${minutes} minute(s).`);
+      error.code = 'auth/account-disabled-rate-limit';
+      throw error;
+    } else {
+      // Lockout expired — clear history
+      localStorage.removeItem(key);
+    }
+  }
+};
+
+const recordFailedAttempt = (email) => {
+  const key = getAttemptsKey(email);
+  const data = JSON.parse(localStorage.getItem(key) || '{}');
+  const attempts = (data.count || 0) + 1;
+
+  if (attempts >= MAX_FAILED_ATTEMPTS) {
+    const lockoutUntil = Date.now() + LOCKOUT_DURATION_MS;
+    localStorage.setItem(key, JSON.stringify({ count: attempts, lockoutUntil }));
+    const error = new Error(`Account login for ${email} has been disabled for 15 minutes due to 3 failed password attempts.`);
+    error.code = 'auth/account-disabled-rate-limit';
+    throw error;
+  } else {
+    localStorage.setItem(key, JSON.stringify({ count: attempts }));
+    const remaining = MAX_FAILED_ATTEMPTS - attempts;
+    const error = new Error(`Invalid email or password. You have ${remaining} attempt(s) remaining before login is disabled.`);
+    error.code = 'auth/invalid-credentials-warning';
+    throw error;
+  }
+};
+
+const clearFailedAttempts = (email) => {
+  const key = getAttemptsKey(email);
+  localStorage.removeItem(key);
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [dbUser, setDbUser] = useState(null);
@@ -70,7 +119,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const result = await signInWithEmailAndPassword(auth, email, password);
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Check if email is currently locked out
+    checkRateLimit(cleanEmail);
+
+    let result;
+    try {
+      result = await signInWithEmailAndPassword(auth, email, password);
+    } catch (authError) {
+      const credentialErrorCodes = [
+        'auth/invalid-credential',
+        'auth/wrong-password',
+        'auth/user-not-found',
+        'auth/invalid-email',
+      ];
+
+      if (credentialErrorCodes.includes(authError.code)) {
+        recordFailedAttempt(cleanEmail);
+      }
+      throw authError;
+    }
+
+    // 2. Successful sign in — clear failed attempt count
+    clearFailedAttempts(cleanEmail);
 
     // Force refresh token & user data from Firebase servers
     try {
