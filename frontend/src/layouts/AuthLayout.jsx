@@ -9,7 +9,7 @@ const AuthLayout = () => {
       {/* Left decorative panel */}
       <div className="auth-layout-left">
         <div className="auth-layout-left-content">
-          <div className="brand-icon">⚡</div>
+          <img src="/debai.png" alt="DebateAI Logo" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 16 }} />
           <h1>DebateAI</h1>
           <p>
             Master the art of argumentation with AI-powered debate training.
@@ -46,4 +46,3 @@ const AuthLayout = () => {
 };
 
 export default AuthLayout;
-
