@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import debaiLogo from '../../assets/debai.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -55,7 +54,7 @@ const Login = () => {
           animate={{ rotate: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
         >
-          <img src={debaiLogo} alt="DebateAI Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <img src="/debai.png" alt="DebateAI Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
         </motion.div>
         <h2>DebateAI</h2>
       </div>
