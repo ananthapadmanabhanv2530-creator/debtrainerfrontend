@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
   // Sync with backend on auth state change
   const syncWithBackend = async (firebaseUser) => {
     try {
-      const token = await firebaseUser.getIdToken();
+      const token = await firebaseUser.getIdToken(true);
       const response = await api.post('/auth/login', {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -41,15 +41,17 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Refresh user data from Firebase to check if email was verified in another tab/device
+          // Force refresh token to get latest emailVerified claim from Firebase servers
+          await firebaseUser.getIdToken(true);
           await firebaseUser.reload();
         } catch (_) {}
 
         const currentUser = auth.currentUser || firebaseUser;
         const isPasswordUser = currentUser.providerData?.[0]?.providerId === 'password';
 
-        // Block unverified email/password users from backend sync & state
         if (isPasswordUser && !currentUser.emailVerified) {
+          // Sign out unverified users cleanly so Firebase SDK and React state remain in sync
+          await signOut(auth);
           setUser(null);
           setDbUser(null);
           setLoading(false);
@@ -70,14 +72,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
 
-    // Force reload to fetch the latest emailVerified status from Firebase servers
+    // Force refresh token & user data from Firebase servers
     try {
+      await result.user.getIdToken(true);
       await result.user.reload();
     } catch (_) {}
 
     const currentUser = auth.currentUser || result.user;
 
-    // Enforce email verification for email/password auth
     if (!currentUser.emailVerified) {
       await signOut(auth);
       const error = new Error('Please verify your email address before logging in. Check your inbox for the link.');
@@ -85,8 +87,8 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
 
-    await syncWithBackend(currentUser);
     setUser(currentUser);
+    await syncWithBackend(currentUser);
     return currentUser;
   };
 
