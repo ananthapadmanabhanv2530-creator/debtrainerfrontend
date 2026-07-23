@@ -9,7 +9,7 @@ import Dock from '../../components/reactbits/Dock';
 import { debateService } from '../../services/debateService';
 import {
   Send, Square, Clock, Shield, Swords, Trophy, ArrowLeft,
-  Mic, MicOff, Lightbulb, Pause, Play, Zap, X, AlertTriangle, Sparkles,
+  Mic, MicOff, Lightbulb, Pause, Play, Zap, X, AlertTriangle, Sparkles, Flag,
 } from 'lucide-react';
 
 const HINT_TYPES = [
@@ -176,12 +176,11 @@ const DebateRoom = () => {
   };
 
   const handleEndDebate = async (force = false) => {
-    if (!force && config.lockIn?.exitConfirmation) {
-      if (!window.confirm('Are you sure you want to end this debate? Your performance will be evaluated.')) {
-        return;
-      }
-    } else if (!force) {
-      if (!window.confirm('Are you sure you want to end this debate? Your performance will be evaluated.')) {
+    if (!force) {
+      const confirmMsg = lockInEnabled
+        ? 'Lock-in Mode Active: Are you sure you want to quit this debate and admit defeat?'
+        : 'Are you sure you want to quit this debate and admit defeat? Your current performance will be evaluated.';
+      if (!window.confirm(confirmMsg)) {
         return;
       }
     }
@@ -288,10 +287,9 @@ const DebateRoom = () => {
       onClick: () => {},
     },
     {
-      icon: <Square size={18} />,
-      label: 'End Debate',
+      icon: <Flag size={18} />,
+      label: 'Quit Debate',
       onClick: () => handleEndDebate(),
-      className: messages.length < 2 ? 'dock-item-disabled' : '',
     },
   ];
 
@@ -351,21 +349,20 @@ const DebateRoom = () => {
 
           {!isCompleted && (
             <motion.button
-              className="btn btn-danger btn-sm debate-header-btn-desktop"
+              className="btn btn-danger btn-sm"
               onClick={() => handleEndDebate()}
-              disabled={loading || messages.length < 2}
+              disabled={loading}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              style={{ display: 'none' }}
+              title="Quit debate and evaluate current arguments"
             >
-              <Square size={14} /> End Debate
+              <Flag size={14} /> Quit Debate
             </motion.button>
           )}
           {isCompleted && (
             <button
-              className="btn btn-primary btn-sm debate-header-btn-desktop"
+              className="btn btn-primary btn-sm"
               onClick={() => navigate(`/debate/${id}/result`)}
-              style={{ display: 'none' }}
             >
               View Results
             </button>
