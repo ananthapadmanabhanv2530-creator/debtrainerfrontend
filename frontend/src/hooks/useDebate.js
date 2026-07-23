@@ -12,6 +12,11 @@ export const useDebate = () => {
   const startTimeRef = useRef(null);
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Hint state
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [currentHint, setCurrentHint] = useState(null);
+  const [hintLoading, setHintLoading] = useState(false);
+
   const startTimer = useCallback(() => {
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
@@ -26,11 +31,13 @@ export const useDebate = () => {
     }
   }, []);
 
-  const startDebate = useCallback(async (topic, category, difficulty, userSide) => {
+  const startDebate = useCallback(async (topic, category, difficulty, userSide, config = {}) => {
     setLoading(true);
     setError(null);
+    setHintsUsed(0);
+    setCurrentHint(null);
     try {
-      const result = await debateService.start(topic, category, difficulty, userSide);
+      const result = await debateService.start(topic, category, difficulty, userSide, config);
       setDebate(result.debate);
       setMessages([result.message]);
       startTimer();
@@ -107,12 +114,43 @@ export const useDebate = () => {
     }
   }, [startTimer]);
 
+  const requestHint = useCallback(async (hintType = 'keyword') => {
+    if (!debate) return;
+    const config = debate.config || {};
+    const maxHints = config.hints?.maxHints || 3;
+
+    if (hintsUsed >= maxHints) {
+      setError('No hints remaining');
+      return null;
+    }
+
+    setHintLoading(true);
+    setError(null);
+    try {
+      const result = await debateService.requestHint(debate.id, hintType);
+      setCurrentHint({ text: result.hint, type: result.hintType });
+      setHintsUsed((prev) => prev + 1);
+      return result;
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to get hint');
+      return null;
+    } finally {
+      setHintLoading(false);
+    }
+  }, [debate, hintsUsed]);
+
+  const dismissHint = useCallback(() => {
+    setCurrentHint(null);
+  }, []);
+
   const reset = useCallback(() => {
     setDebate(null);
     setMessages([]);
     setEvaluation(null);
     setError(null);
     setElapsedTime(0);
+    setHintsUsed(0);
+    setCurrentHint(null);
     stopTimer();
   }, [stopTimer]);
 
@@ -124,10 +162,17 @@ export const useDebate = () => {
     evaluation,
     error,
     elapsedTime,
+    // Hint state
+    hintsUsed,
+    currentHint,
+    hintLoading,
+    // Actions
     startDebate,
     sendMessage,
     endDebate,
     loadDebate,
+    requestHint,
+    dismissHint,
     reset,
   };
 };
