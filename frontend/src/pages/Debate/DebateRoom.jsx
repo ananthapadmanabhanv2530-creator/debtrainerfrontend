@@ -35,9 +35,9 @@ const DebateRoom = () => {
   // ... (rest omitted until handleSpeechToggle)
 
 
-  // Lightning round tracking
   const [lightningRound, setLightningRound] = useState(1);
   const [isUserTurn, setIsUserTurn] = useState(true);
+  const [isEvaluating, setIsEvaluating] = useState(false);
 
   const {
     debate,
@@ -186,11 +186,14 @@ const DebateRoom = () => {
     }
 
     debateTimer.stop();
+    setIsEvaluating(true);
     try {
       await endDebate();
       navigate(`/debate/${id}/result`);
     } catch (err) {
       console.error('End failed:', err);
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -230,6 +233,20 @@ const DebateRoom = () => {
     setShowHintMenu(false);
     await requestHint(hintType);
   };
+
+  if (isEvaluating) {
+    return (
+      <div className="loading-screen" style={{ minHeight: 'auto', paddingTop: 120, flexDirection: 'column', gap: 16 }}>
+        <div className="loading-spinner" />
+        <div style={{ color: 'var(--primary-light)', fontSize: 18, fontWeight: 600 }}>
+          ✨ AI Judge evaluating your debate performance...
+        </div>
+        <p style={{ color: 'var(--fg-secondary)', fontSize: 14 }}>
+          Analyzing argument logic, evidence, clarity, confidence, and persuasion...
+        </p>
+      </div>
+    );
+  }
 
   if (loading && !debate) {
     return (
