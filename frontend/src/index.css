@@ -1716,6 +1716,7 @@ textarea:focus {
   background-size: 300% 300%;
   animation: gradient-spin 4s linear infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -2573,3 +2574,4 @@ body:has(.lockin-mode) .main-content {
     padding: 0 10px;
   }
 }
+
