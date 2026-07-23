@@ -1,12 +1,13 @@
 import api from './api';
 
 export const debateService = {
-  start: async (topic, category, difficulty, userSide) => {
+  start: async (topic, category, difficulty, userSide, config = {}) => {
     const response = await api.post('/debate/start', {
       topic,
       category,
       difficulty,
       userSide,
+      config,
     });
     return response.data;
   },
@@ -36,6 +37,14 @@ export const debateService = {
 
   delete: async (id) => {
     const response = await api.delete(`/debate/${id}`);
+    return response.data;
+  },
+
+  requestHint: async (debateId, hintType) => {
+    const response = await api.post('/debate/hint', {
+      debateId,
+      hintType,
+    });
     return response.data;
   },
 };
