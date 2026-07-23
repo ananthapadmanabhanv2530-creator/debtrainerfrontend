@@ -13,16 +13,15 @@ const CONFIG_TABS = [
 const LANGUAGES = [
   { code: 'en-US', label: 'English (US)' },
   { code: 'en-GB', label: 'English (UK)' },
-  { code: 'es-ES', label: 'Spanish' },
-  { code: 'fr-FR', label: 'French' },
-  { code: 'de-DE', label: 'German' },
-  { code: 'hi-IN', label: 'Hindi' },
-  { code: 'zh-CN', label: 'Chinese' },
-  { code: 'ja-JP', label: 'Japanese' },
-  { code: 'ko-KR', label: 'Korean' },
-  { code: 'ar-SA', label: 'Arabic' },
-  { code: 'pt-BR', label: 'Portuguese' },
-  { code: 'ru-RU', label: 'Russian' },
+  { code: 'hi-IN', label: 'Hindi (हिन्दी)' },
+  { code: 'ta-IN', label: 'Tamil (தமிழ்)' },
+  { code: 'ml-IN', label: 'Malayalam (മലയാളം)' },
+  { code: 'te-IN', label: 'Telugu (తెలుగు)' },
+  { code: 'kn-IN', label: 'Kannada (കന്നഡ)' },
+  { code: 'bn-IN', label: 'Bengali (বাংলা)' },
+  { code: 'gu-IN', label: 'Gujarati (ગુજરાતી)' },
+  { code: 'mr-IN', label: 'Marathi (मराठी)' },
+  { code: 'pa-IN', label: 'Punjabi (ਪੰਜਾਬੀ)' },
 ];
 
 const HINT_TYPES = [
@@ -429,4 +428,3 @@ const DebateConfig = ({ config, onConfigChange }) => {
 };
 
 export default DebateConfig;
-
