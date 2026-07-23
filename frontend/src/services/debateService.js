@@ -48,3 +48,4 @@ export const debateService = {
     return response.data;
   },
 };
+
