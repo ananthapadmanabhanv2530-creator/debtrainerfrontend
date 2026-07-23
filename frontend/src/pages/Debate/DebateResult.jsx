@@ -25,9 +25,10 @@ const item = {
 };
 
 const ScoreCircle = ({ score, label, color }) => {
+  const numScore = Number(score) || 0;
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
-  const progress = ((score || 0) / 10) * circumference;
+  const progress = (numScore / 10) * circumference;
 
   return (
     <Card3D className="glass-card result-score-card" intensity={5}>
@@ -47,7 +48,7 @@ const ScoreCircle = ({ score, label, color }) => {
           />
         </svg>
         <div className="score-value" style={{ color }}>
-          {(score || 0).toFixed(1)}
+          {numScore.toFixed(1)}
         </div>
       </div>
       <div className="score-label">{label}</div>
@@ -99,21 +100,26 @@ const DebateResult = () => {
 
   const { debate, feedback, messages } = data;
 
+  const getNum = (val) => {
+    const n = parseFloat(val);
+    return isNaN(n) ? 0 : n;
+  };
+
   const radarData = [
-    { subject: 'Logic', score: feedback.logicScore || 0 },
-    { subject: 'Evidence', score: feedback.evidenceScore || 0 },
-    { subject: 'Clarity', score: feedback.clarityScore || 0 },
-    { subject: 'Confidence', score: feedback.confidenceScore || 0 },
-    { subject: 'Persuasion', score: feedback.persuasionScore || 0 },
+    { subject: 'Logic', score: getNum(feedback.logicScore ?? feedback.logic_score) },
+    { subject: 'Evidence', score: getNum(feedback.evidenceScore ?? feedback.evidence_score) },
+    { subject: 'Clarity', score: getNum(feedback.clarityScore ?? feedback.clarity_score) },
+    { subject: 'Confidence', score: getNum(feedback.confidenceScore ?? feedback.confidence_score) },
+    { subject: 'Persuasion', score: getNum(feedback.persuasionScore ?? feedback.persuasion_score) },
   ];
 
   const scores = [
-    { label: 'Overall', score: feedback.overallScore, color: '#7C3AED' },
-    { label: 'Logic', score: feedback.logicScore, color: '#A78BFA' },
-    { label: 'Evidence', score: feedback.evidenceScore, color: '#3b82f6' },
-    { label: 'Clarity', score: feedback.clarityScore, color: '#10b981' },
-    { label: 'Confidence', score: feedback.confidenceScore, color: '#f59e0b' },
-    { label: 'Persuasion', score: feedback.persuasionScore, color: '#ef4444' },
+    { label: 'Overall', score: getNum(feedback.overallScore ?? feedback.overall_score), color: '#7C3AED' },
+    { label: 'Logic', score: getNum(feedback.logicScore ?? feedback.logic_score), color: '#A78BFA' },
+    { label: 'Evidence', score: getNum(feedback.evidenceScore ?? feedback.evidence_score), color: '#3b82f6' },
+    { label: 'Clarity', score: getNum(feedback.clarityScore ?? feedback.clarity_score), color: '#10b981' },
+    { label: 'Confidence', score: getNum(feedback.confidenceScore ?? feedback.confidence_score), color: '#f59e0b' },
+    { label: 'Persuasion', score: getNum(feedback.persuasionScore ?? feedback.persuasion_score), color: '#ef4444' },
   ];
 
   return (
