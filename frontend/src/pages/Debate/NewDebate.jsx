@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDebate } from '../../hooks/useDebate';
-import { Swords, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Swords, ArrowLeft, ArrowRight, Sparkles, Settings2 } from 'lucide-react';
+import DebateConfig from './DebateConfig';
 
 const CATEGORIES = [
   { name: 'Technology', emoji: '💻', topics: [
@@ -56,6 +57,51 @@ const DIFFICULTIES = [
   { value: 'expert', label: 'Expert', desc: 'Championship level', color: '#A78BFA' },
 ];
 
+const DEFAULT_CONFIG = {
+  timer: {
+    enabled: false,
+    rounds: { opening: 180, rebuttal: 120, crossfire: 90, closing: 120 },
+    warnings: [60, 30, 10],
+    autoEnd: true,
+    pauseEnabled: true,
+    autoSave: true,
+  },
+  lockIn: {
+    enabled: false,
+    fullscreen: true,
+    preventTopicChange: true,
+    preventDifficultyChange: true,
+    lockSettingsAfterStart: true,
+    exitConfirmation: true,
+    autoSaveResume: true,
+  },
+  lightning: {
+    enabled: false,
+    timePerTurn: 60,
+    numberOfRounds: 5,
+    aiResponseTime: 10,
+    instantFollowUp: false,
+    suddenDeath: false,
+  },
+  speech: {
+    enabled: false,
+    language: 'en-US',
+    manualEditBeforeSubmit: true,
+  },
+  hints: {
+    enabled: false,
+    maxHints: 3,
+    hintPenalty: false,
+    types: {
+      keyword: true,
+      outline: true,
+      counterArgument: true,
+      evidence: true,
+      socratic: true,
+    },
+  },
+};
+
 const NewDebate = () => {
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -63,6 +109,7 @@ const NewDebate = () => {
   const [customTopic, setCustomTopic] = useState('');
   const [selectedSide, setSelectedSide] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium');
+  const [debateConfig, setDebateConfig] = useState(DEFAULT_CONFIG);
   const { startDebate, loading, error } = useDebate();
   const navigate = useNavigate();
 
@@ -75,7 +122,8 @@ const NewDebate = () => {
         currentTopic,
         category,
         selectedDifficulty,
-        selectedSide
+        selectedSide,
+        debateConfig
       );
       navigate(`/debate/${result.debate.id}`);
     } catch (err) {
@@ -87,14 +135,23 @@ const NewDebate = () => {
     if (step === 1) return currentTopic.length >= 5;
     if (step === 2) return selectedSide !== '';
     if (step === 3) return selectedDifficulty !== '';
+    if (step === 4) return true; // Config is always valid (all optional)
     return false;
   };
+
+  const activeConfigCount = [
+    debateConfig.timer.enabled,
+    debateConfig.lockIn.enabled,
+    debateConfig.lightning.enabled,
+    debateConfig.speech.enabled,
+    debateConfig.hints.enabled,
+  ].filter(Boolean).length;
 
   return (
     <div className="debate-setup">
       {/* Step Indicator */}
       <div className="step-indicator">
-        {[1, 2, 3].map((s) => (
+        {[1, 2, 3, 4].map((s) => (
           <motion.div
             key={s}
             className={`step-dot ${s === step ? 'active' : ''} ${s < step ? 'completed' : ''}`}
@@ -257,6 +314,35 @@ const NewDebate = () => {
             {error && <div className="error-message" style={{ marginBottom: 16 }}>{error}</div>}
           </motion.div>
         )}
+
+        {/* Step 4: Configuration */}
+        {step === 4 && (
+          <motion.div
+            key="step4"
+            className="step-content"
+            initial={{ opacity: 0, x: 60, rotateY: -5 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            exit={{ opacity: 0, x: -60, rotateY: 5 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h2>
+              <Settings2 size={22} style={{ verticalAlign: 'text-bottom', marginRight: 8 }} />
+              Configure Debate
+            </h2>
+            <p>
+              Customize your debate experience
+              {activeConfigCount > 0 && (
+                <span style={{ color: 'var(--primary-light)', fontWeight: 500 }}>
+                  {' '}— {activeConfigCount} feature{activeConfigCount !== 1 ? 's' : ''} active
+                </span>
+              )}
+            </p>
+
+            <DebateConfig config={debateConfig} onConfigChange={setDebateConfig} />
+
+            {error && <div className="error-message" style={{ marginBottom: 16 }}>{error}</div>}
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Navigation Buttons */}
@@ -272,7 +358,7 @@ const NewDebate = () => {
           {step === 1 ? 'Cancel' : 'Back'}
         </motion.button>
 
-        {step < 3 ? (
+        {step < 4 ? (
           <motion.button
             className="btn btn-primary"
             onClick={() => setStep(step + 1)}
