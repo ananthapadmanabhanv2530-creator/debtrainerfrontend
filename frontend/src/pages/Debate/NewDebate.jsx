@@ -394,3 +394,4 @@ const NewDebate = () => {
 };
 
 export default NewDebate;
+
