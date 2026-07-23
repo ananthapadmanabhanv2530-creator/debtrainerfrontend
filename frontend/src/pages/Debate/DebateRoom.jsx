@@ -6,9 +6,10 @@ import { useDebateTimer } from '../../hooks/useDebateTimer';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import GradualBlur from '../../components/reactbits/GradualBlur';
 import Dock from '../../components/reactbits/Dock';
+import { debateService } from '../../services/debateService';
 import {
   Send, Square, Clock, Shield, Swords, Trophy, ArrowLeft,
-  Mic, MicOff, Lightbulb, Pause, Play, Zap, X, AlertTriangle,
+  Mic, MicOff, Lightbulb, Pause, Play, Zap, X, AlertTriangle, Sparkles,
 } from 'lucide-react';
 
 const HINT_TYPES = [
@@ -26,8 +27,13 @@ const DebateRoom = () => {
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
+  // Gemini speech auto-correct state
+  const [isPolishingSpeech, setIsPolishingSpeech] = useState(false);
+
   // Hint UI state
   const [showHintMenu, setShowHintMenu] = useState(false);
+  // ... (rest omitted until handleSpeechToggle)
+
 
   // Lightning round tracking
   const [lightningRound, setLightningRound] = useState(1);
@@ -195,16 +201,26 @@ const DebateRoom = () => {
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
   };
 
-  const handleSpeechToggle = () => {
+  const handleSpeechToggle = async () => {
     if (speech.isListening) {
       speech.stopListening();
-      // In sudden death, auto-submit
-      if (suddenDeath && speech.transcript.trim()) {
-        setInput(speech.transcript.trim());
-        setTimeout(() => handleSend(), 100);
-      } else {
-        // Normal: put transcript in input for review
-        setInput((prev) => (prev + ' ' + speech.transcript).trim());
+      const rawText = speech.transcript.trim();
+      if (!rawText) return;
+
+      setIsPolishingSpeech(true);
+      try {
+        const res = await debateService.correctSpeech(rawText, debate?.topic);
+        const polishedText = res.corrected || rawText;
+        setInput((prev) => (prev ? prev + ' ' + polishedText : polishedText).trim());
+
+        if (suddenDeath) {
+          setTimeout(() => handleSend(), 100);
+        }
+      } catch (err) {
+        console.warn('Speech polish fallback:', err);
+        setInput((prev) => (prev ? prev + ' ' + rawText : rawText).trim());
+      } finally {
+        setIsPolishingSpeech(false);
       }
     } else {
       speech.startListening();
@@ -483,6 +499,22 @@ const DebateRoom = () => {
             </motion.div>
           )}
 
+          {/* Gemini Auto-Correcting Speech Indicator */}
+          {isPolishingSpeech && (
+            <motion.div
+              className="speech-live-bar"
+              style={{ background: 'var(--primary-glow)', borderColor: 'var(--primary)' }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <Sparkles size={14} style={{ color: 'var(--primary-light)' }} />
+              <span className="speech-live-text" style={{ color: 'var(--primary-light)' }}>
+                Gemini AI auto-correcting speech transcript...
+              </span>
+            </motion.div>
+          )}
+
           <div className="debate-input-row">
             {/* Hint button */}
             {hintsEnabled && !isCompleted && (
@@ -600,4 +632,3 @@ const DebateRoom = () => {
 };
 
 export default DebateRoom;
-
