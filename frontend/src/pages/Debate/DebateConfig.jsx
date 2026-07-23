@@ -429,3 +429,4 @@ const DebateConfig = ({ config, onConfigChange }) => {
 };
 
 export default DebateConfig;
+
