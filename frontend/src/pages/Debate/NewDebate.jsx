@@ -2,8 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDebate } from '../../hooks/useDebate';
-import { Swords, ArrowLeft, ArrowRight, Sparkles, Settings2 } from 'lucide-react';
+import { Swords, ArrowLeft, ArrowRight, Sparkles, Settings2, Globe } from 'lucide-react';
 import DebateConfig from './DebateConfig';
+
+const LANGUAGES = [
+  { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
+  { code: 'en-GB', name: 'English (UK)', flag: '🇬🇧' },
+  { code: 'hi-IN', name: 'Hindi', flag: '🇮🇳' },
+  { code: 'ta-IN', name: 'Tamil', flag: '🇮🇳' },
+  { code: 'ml-IN', name: 'Malayalam', flag: '🇮🇳' },
+  { code: 'te-IN', name: 'Telugu', flag: '🇮🇳' },
+  { code: 'kn-IN', name: 'Kannada', flag: '🇮🇳' },
+  { code: 'bn-IN', name: 'Bengali', flag: '🇮🇳' },
+  { code: 'gu-IN', name: 'Gujarati', flag: '🇮🇳' },
+  { code: 'mr-IN', name: 'Marathi', flag: '🇮🇳' },
+  { code: 'pa-IN', name: 'Punjabi', flag: '🇮🇳' },
+];
 
 const CATEGORIES = [
   { name: 'Technology', emoji: '💻', topics: [
@@ -104,6 +118,7 @@ const DEFAULT_CONFIG = {
 
 const NewDebate = () => {
   const [step, setStep] = useState(1);
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
@@ -112,6 +127,18 @@ const NewDebate = () => {
   const [debateConfig, setDebateConfig] = useState(DEFAULT_CONFIG);
   const { startDebate, loading, error } = useDebate();
   const navigate = useNavigate();
+
+  const handleLanguageChange = (code) => {
+    setSelectedLanguage(code);
+    setDebateConfig((prev) => ({
+      ...prev,
+      language: code,
+      speech: {
+        ...prev.speech,
+        language: code,
+      },
+    }));
+  };
 
   const currentTopic = customTopic || selectedTopic;
 
@@ -173,6 +200,29 @@ const NewDebate = () => {
           >
             <h2>Choose a Topic</h2>
             <p>Select from popular topics or enter your own</p>
+
+            {/* Language Selection */}
+            <div className="input-group" style={{ marginBottom: 28, textAlign: 'left' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                <Globe size={16} style={{ color: 'var(--primary-light)' }} /> Select Debate Language
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginTop: 8 }}>
+                {LANGUAGES.map((lang) => (
+                  <motion.button
+                    key={lang.code}
+                    type="button"
+                    className={`btn btn-sm ${selectedLanguage === lang.code ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ justifyContent: 'flex-start', gap: 6, textTransform: 'none' }}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    <span>{lang.flag}</span>
+                    <span style={{ fontSize: 13 }}>{lang.name}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
 
             {/* Custom topic input */}
             <div className="input-group" style={{ marginBottom: 32, textAlign: 'left' }}>
@@ -394,4 +444,3 @@ const NewDebate = () => {
 };
 
 export default NewDebate;
-
