@@ -248,8 +248,16 @@ const DebateResult = () => {
       {/* Action Buttons */}
       <motion.div
         variants={item}
-        style={{ display: 'flex', gap: 12, marginTop: 32, justifyContent: 'center' }}
+        style={{ display: 'flex', gap: 12, marginTop: 32, justifyContent: 'center', flexWrap: 'wrap' }}
       >
+        <motion.button
+          className="btn btn-secondary btn-lg"
+          onClick={() => navigate('/dashboard')}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <ArrowLeft size={16} /> Back to Dashboard
+        </motion.button>
         <motion.button
           className="btn btn-secondary btn-lg"
           onClick={() => navigate(`/debate/${id}`)}
