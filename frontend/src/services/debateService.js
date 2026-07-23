@@ -47,5 +47,12 @@ export const debateService = {
     });
     return response.data;
   },
-};
 
+  correctSpeech: async (transcript, topic) => {
+    const response = await api.post('/debate/correct-speech', {
+      transcript,
+      topic,
+    });
+    return response.data;
+  },
+};
