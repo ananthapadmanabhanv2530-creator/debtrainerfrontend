@@ -98,3 +98,4 @@ export const useSpeechRecognition = (language = 'en-US') => {
     setTranscript,
   };
 };
+
